@@ -32,7 +32,6 @@ Player * Player_info::GetPlayer_ptr()
 }
 
 
-// TODO //
 void Player_info::AddItem(int ID, int n)
 {
 	int category = Database::GetItem(ID)->GetCategory();
@@ -123,8 +122,8 @@ double Database::TypesEfficcacity[17][17] = {
 	1,   1,   1,   1,   1,   1,   1,   1, 0.5,   1,   1,   1,   1,   1,   1,    1,  2};
 
 
-TTF_Font *Database::font, *Database::font1, *Database::font2, *Database::font3, *Database::font4;
-SDL_Color Database::Black, Database::Red, Database::White;
+TTF_Font *Database::font, *Database::font1, *Database::font2, *Database::font3, *Database::font4, *Database::font17, *Database::font20;
+SDL_Color Database::Black, Database::Red, Database::White, Database::Sad_White;
 vector<Pokemon> Database::_pkmns;
 vector<Capacity> Database::_capacities;
 vector<Item*> Database::_items;
@@ -137,6 +136,7 @@ void Database::Load()
 	Black = { 53, 53, 53 };
 	White = { 223, 223, 223 };
 	Red = { 243, 140, 140 };
+	Sad_White = { 180, 180, 180 };
 
 	// Fonts
 	font = TTF_OpenFont("Fonts/PokemonDP.ttf", 12);
@@ -144,6 +144,8 @@ void Database::Load()
 	font2 = TTF_OpenFont("Fonts/pkmnems.ttf", 10);
 	font3 = TTF_OpenFont("Fonts/DS-DIGIT.ttf", 32);
 	font4 = TTF_OpenFont("Fonts/PokemonDP.ttf", 16);
+	font17 = TTF_OpenFont("Fonts/PokemonDP.ttf", 17);
+	font20 = TTF_OpenFont("Fonts/PokemonDP.ttf", 20);
 
 	items.Load("Menu/Items.png");
 
@@ -155,6 +157,7 @@ void Database::Load()
 	pkmn_hpBar.Load("Menu/hpBar.png");
 	pkmn_xpBar.Load("Menu/xpbar.png");
 	pkmn_item.Load("Menu/Item.png");
+	pkmn_types.Load("Menu/Types.png");
 
 
 	// Items
@@ -195,7 +198,7 @@ void Database::Load()
 	
 
 	cpfile.seekg(cpfile.beg);
-	_capacities.reserve(367);
+	_capacities.resize(367);
 	for (int i = 0; i < _capacities.size(); i++)
 	{
 		cpfile >> name >> type >> category >> target >> accuracy >> power >> PP >>
@@ -217,7 +220,7 @@ void Database::Load()
 	int nbpkmns, hp, att, def, attsp, defsp, speed, xpcourb, type1, type2, BasicXP;
 	string pname;
 	pkmnfile >> nbpkmns;
-	_pkmns.reserve(sizeof(Pokemon) * nbpkmns);
+	_pkmns.resize(nbpkmns);
 	for (int i = 0; i < nbpkmns; i++)
 	{
 		pkmnfile >> pname >> hp >> att >> def >> attsp >> defsp >> speed >> xpcourb >> type1 >> type2 >> BasicXP;
@@ -228,16 +231,25 @@ void Database::Load()
 
 void Database::Destroy()
 {
+	TTF_CloseFont(font); TTF_CloseFont(font1); TTF_CloseFont(font2); TTF_CloseFont(font3); TTF_CloseFont(font4);
+
+	for (int i = 0; i < _items.size(); i++) delete _items[i];
 }
 
-Pokemon Database::GetPkmn(int ID)
+Pokemon *Database::GetPkmn(int ID)
 {
-	if(ID < _pkmns.size()) return _pkmns[ID];
-	else return _pkmns[0];
+	
+	if(ID < _pkmns.size()) return &_pkmns[ID];
+	else return &_pkmns[0];
 }
 
 Item *Database::GetItem(int ID)
 {
 	return _items[ID];
+}
+
+Capacity * Database::GetCapacity(int ID)
+{
+	return &_capacities[ID];
 }
 

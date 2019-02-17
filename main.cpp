@@ -54,18 +54,19 @@ void Main::Init()
 
 void Main::MainLoop()
 {
-	double ActTime = 0, LastTime = 0, frame_rate = 60;
+	double ActTime = 0, LastTime = 0, frame_rate = 90;
 	bool Keep = true;
 
 	double zoom = 1;
-	Chrono c;
+	Clock framerate_timer; framerate_timer.start();
 
 	Player *player = Player_info::GetPlayer_ptr();
-	player->Load(8, 11);
+	player->SetPos(8, 11);
+	player->SetName("Red");
 
 
 	Map map;
-	map.Load(3);
+	map.Load(1);
 	map.BindPlayer(player);
 
 	Camera cam;
@@ -81,17 +82,17 @@ void Main::MainLoop()
 	int wx = 0, wy = 0;
 	float opacity = 1;
 
+	Main::GUI = 3;
+
 	while (Keep && !input.CloseGame)
 	{
-		ActTime = GE_getTime();
-
-		if (ActTime - LastTime > 1000.0 / frame_rate)
+		if (framerate_timer.duration() > 1000000.0 / frame_rate)
 		{
+			framerate_timer.start();
+			
 			// Inputs
 			input.UpdateControllerInputs(true);
 			input.UpdateKeyboardInputs(true);
-
-			
 
 			if (GUI == 0)
 			{
@@ -104,13 +105,15 @@ void Main::MainLoop()
 			}
 			else if (GUI == 1) PkmnTeamGUI::Update();
 			else if (GUI == 2) BagGUI::Update();
+			else if (GUI == 3)FightGUI::Battle(Player_info::GetPlayer_ptr(), 5, 100, 0);
 
 			map.Update();
 			player->Animate();
 
 			// Display
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT);
 
+			cam.SetLimit(0, map.GetW() * 32, 0, map.GetH() * 32);
 			cam.Update();
 			cam.Perspective();
 
@@ -122,12 +125,65 @@ void Main::MainLoop()
 			if (GUI == 1) PkmnTeamGUI::Display();
 			if (GUI == 2) BagGUI::Display();
 
-			SDL_GL_SwapWindow(screen);
+			if (!input.CloseGame) SDL_GL_SwapWindow(screen);
 			LastTime = ActTime;
 		}
-		else GE_rest(1000.0 / frame_rate - (ActTime - LastTime));
+		else Clock::sleep(1000.0 / frame_rate - framerate_timer.duration() * 0.001);
 	}
 
+
+}
+
+void Main::Editor()
+{
+	double ActTime = 0, LastTime = 0, frame_rate = 90;
+	bool Keep = true;
+
+	double zoom = 1;
+	Clock framerate_timer; framerate_timer.start();
+
+	Map map;
+	map.Load(1);
+
+	Camera cam;
+	cam.SetPos(0, 0, 0);
+
+	double px, py;
+	double time = 17;
+
+	while (Keep && !input.CloseGame)
+	{
+		if (framerate_timer.duration() >= 1000000.0 / frame_rate)
+		{
+			//cout << framerate_timer.duration() * 0.001 << endl;
+			framerate_timer.start();
+			// Inputs
+			input.UpdateControllerInputs(true);
+			input.UpdateKeyboardInputs(true);
+			if (input.GetInput(input.S)) cam.SetY(cam.Y() + 4);
+			if (input.GetInput(input.Z)) cam.SetY(cam.Y() - 4);
+			if (input.GetInput(input.Q)) cam.SetX(cam.X() - 4);
+			if (input.GetInput(input.D)) cam.SetX(cam.X() + 4);
+
+			map.Update();
+
+
+			// Display
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			cam.Update();
+			cam.Perspective();
+
+			map.Display();
+
+			// GUI
+			cam.GUI();
+
+			if (!input.CloseGame) SDL_GL_SwapWindow(screen);
+			
+		}
+		else Clock::sleep(1000.0 / frame_rate - framerate_timer.duration() * 0.001);
+	}
 
 }
 
@@ -135,9 +191,6 @@ void Main::Create_window(const char * name, int x, int y, int w, int h)
 {
 	Disp_w = w; Disp_h = h;
 	Display_info::width = w; Display_info::height = h;
-
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
 	Disp_w = w; Disp_h = h;
 	Display_info::width = w; Display_info::height = h;
@@ -155,11 +208,6 @@ void Main::Create_window(const char * name, int x, int y, int w, int h)
 		Exit();
 	}
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-	glEnable(GL_DEPTH);
-	glClearDepth(1.0f);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_MULTISAMPLE);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
@@ -182,13 +230,16 @@ int main(int argc, char *argv[])
 	Main::Init();
 
 	Main::Create_window("Pokemon Grey", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1080, 720);
+	//Main::Create_window("Pokemon Grey - Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1400, 900);
 	Database::Load();
 	Player_info::Load();
 	MainInfoGUI::Init();
 	PkmnTeamGUI::Init();
 	BagGUI::Init();
+	FightGUI::Init();
 
 	Main::MainLoop();
+	//Main::Editor();
 
 	Main::Exit();
 

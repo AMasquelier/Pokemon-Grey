@@ -51,6 +51,11 @@ int Item::GetCategory()
 	return _category;
 }
 
+Bitmap * Item::GetNameBMP()
+{
+	return &_i_name;
+}
+
 string Item::GetName()
 {
 	return _name;
@@ -66,18 +71,13 @@ void Item::SetNb(int nb)
 	_nb = nb;
 }
 
-void Item::Display(int n)
+Bitmap *Item::GetDescBMP()
 {
-	Draw::BITMAP(24, 91 + 20 * n, &_i_name);
-}
-
-void Item::Display_desc()
-{
-	for (int i = 0; i < 3; i++) Draw::BITMAP(10, 566 + 20 * i, &_i_desc[i]);
-	Draw::BITMAP_region(12, 505, 64, 64, (_ID % 16) * 32, (_ID / 16) * 32, 32, 32, &Database::items);
+	return &_i_desc[0];
 }
 
 
+// Item for bag
 Item_bag::Item_bag()
 {
 }
@@ -96,14 +96,9 @@ void Item_bag::Load(int ID, string name, int type, string desc[3])
 	}
 }
 
-bool Item_bag::Effect(Pokemon * target, Character * trainer)
+Bitmap * Item_bag::GetNbBMP()
 {
-	return false;
-}
-
-void Item_bag::Display(int n)
-{
-	Draw::BITMAP(140 - _i_nb.GetW(), 91 + 20 * n, &_i_nb);
+	return &_i_nb;
 }
 
 void Item_bag::equal(Item *P)
@@ -153,6 +148,7 @@ int Item_bag::GetNb()
 }
 
 
+// Ball
 I_Ball::I_Ball()
 {
 }
@@ -162,7 +158,6 @@ I_Ball::I_Ball(float p)
 	_prob = p;
 }
 
-// Ball
 void I_Ball::Load_i(float p)
 {
 	_prob = p;
@@ -179,6 +174,7 @@ float I_Ball::GetProbability()
 }
 
 
+// Heal
 I_Heal::I_Heal()
 {
 }
@@ -186,7 +182,7 @@ I_Heal::I_Heal()
 bool I_Heal::Effect(Pokemon * target, Character * trainer)
 {
 	if (target->GetActHP() == target->GetHP() || (target->GetActHP() == 0 && _revive == 0)) return false;
-	if (_hp > 0) PkmnTeamGUI::Healing = target->GetActHP() + _hp;
+	if (_hp > 0) PkmnTeamGUI::Healing = min(target->GetActHP() + _hp, target->GetHP());
 	return true;
 }
 
@@ -195,7 +191,6 @@ I_Heal::I_Heal(int hp, int att, int def, int attsp, int defsp, int speed, int pp
 	_hp = hp; _att = att; _def = def; _attsp = attsp; _defsp = defsp; _speed = speed; _pp = pp; _status = status;
 }
 
-// Heal
 void I_Heal::Load_i(int hp, int att, int def, int attsp, int defsp, int speed, int pp, int status)
 {
 	_hp = hp; _att = att; _def = def; _attsp = attsp; _defsp = defsp; _speed = speed; _pp = pp; _status = status;

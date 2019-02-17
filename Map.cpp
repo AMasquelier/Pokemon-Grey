@@ -10,22 +10,11 @@ void Map::Load(int ID)
 	cout << filename << endl;
 	ifstream file(filename.c_str(), std::ios::in);
 
-	int w, h;
-	file >> _layers >> w >> h;
-	_w = w; _h = h;
-
-	_tileset.Load("Tilesets/tileset1.png");
-
-	// Events Localisation
-	_events_loc = new int*[_w];
-	for (int i = 0; i < _w; i++)
-		_events_loc[i] = new int[_h];
-
-	for (int i = 0; i < _h; i++)
-	{
-		for (int j = 0; j < _w; j++)
-			file >> _events_loc[j][i];
-	}
+	string ts;
+	file >> _layers >> _w >> _h;
+	file >> ts;
+	filename = "Tilesets/" + ts + ".png";
+	_tileset.Load(filename.c_str());
 
 	// Collision
 	_collision = new int*[_w];
@@ -70,10 +59,32 @@ void Map::Load(int ID)
 
 		if (type == "TP")
 		{
-			int x, y, ID;
-			file >> ID >> x >> y;
+			int x, y, dx, dy, ID;
+			bool t;
+			file >> ID >> x >> y >> dx >> dy >> t;
 
-			_events.push_back(new Teleport_E(ID, x, y));
+			_events.push_back(new Teleport_E(ID, x, y, dx, dy, t));
+		}
+		if (type == "ANIM_TILE")
+		{
+			int x, y, ID, ev_type, nb_frames, *tiles, dir[4];
+			float *delays;
+			file >> x >> y >> nb_frames;
+			tiles = new int[nb_frames];
+			delays = new float[nb_frames];
+			for (int i = 0; i < nb_frames; i++)
+				file >> tiles[i] >> delays[i];
+
+			file >> ev_type;
+			if (ev_type == Animated_Tile_E::POS || ev_type == Animated_Tile_E::GOING)
+			{
+				int ex, ey;
+				file >> ex >> ey;
+				for (int i = 0; i < 4; i++) file >> dir[i];
+				_events.push_back(new Animated_Tile_E(x, y, nb_frames, tiles, delays, ex, ey, (ev_type == Animated_Tile_E::POS), dir));
+			}
+
+
 		}
 		file >> buf;
 	}
@@ -86,9 +97,6 @@ void Map::GoTo(int ID)
 	// Release Memory
 	//SDL_DestroyTexture(_tileset);
 
-	for (int i = 0; i < _w; i++) free(_events_loc[i]);
-	free(_events_loc);
-
 	for (int i = 0; i < _w; i++) free(_collision[i]);
 	free(_collision);
 		
@@ -99,28 +107,20 @@ void Map::GoTo(int ID)
 	}
 	free(_map);
 
-	//for (int i = 0; i < _events.size(); i++) delete _events[i];
+	for (int i = 0; i < _events.size(); i++) delete _events[i];
 	_events.clear();
+
 
 	// Load new map
 	string filename = ""; filename = "Map/" + to_string(ID) + ".txt";
 	cout << filename << endl;
 	ifstream file(filename.c_str(), std::ios::in);
 
-	int w, h;
-	file >> _layers >> w >> h;
-	_w = w; _h = h;
-
-	// Events Localisation
-	_events_loc = new int*[_w];
-	for (int i = 0; i < _w; i++)
-		_events_loc[i] = new int[_h];
-
-	for (int i = 0; i < _h; i++)
-	{
-		for (int j = 0; j < _w; j++)
-			file >> _events_loc[j][i];
-	}
+	string ts;
+	file >> _layers >> _w >> _h;
+	file >> ts;
+	filename = "Tilesets/" + ts + ".png";
+	_tileset.Load(filename.c_str());
 
 	// Collision
 	_collision = new int*[_w];
@@ -165,10 +165,33 @@ void Map::GoTo(int ID)
 
 		if (type == "TP")
 		{
-			int x, y, ID;
-			file >> ID >> x >> y;
+			int x, y, dx, dy, ID;
+			bool t;
+			file >> ID >> x >> y >> dx >> dy >> t;
 
-			_events.push_back(new Teleport_E(ID, x, y));
+			_events.push_back(new Teleport_E(ID, x, y, dx, dy, t));
+		}
+		if (type == "ANIM_TILE")
+		{
+			int x, y, ID, ev_type, nb_frames, *tiles, dir[4];
+			float *delays;
+			file >> x >> y >> nb_frames;
+			tiles = new int[nb_frames];
+			delays = new float[nb_frames];
+			for (int i = 0; i < nb_frames; i++)
+				file >> tiles[i] >> delays[i];
+
+			file >> ev_type;
+			if (ev_type == Animated_Tile_E::POS || ev_type == Animated_Tile_E::GOING)
+			{
+				int ex, ey;
+				file >> ex >> ey;
+				
+				for (int i = 0; i < 4; i++) file >> dir[i];
+				_events.push_back(new Animated_Tile_E(x, y, nb_frames, tiles, delays, ex, ey, (ev_type == Animated_Tile_E::POS), dir));
+			}
+			
+
 		}
 		file >> buf;
 	}
@@ -182,27 +205,36 @@ void Map::BindPlayer(Player * p)
 
 void Map::Update()
 {
-	_scroll_x = _player->GetPosX() - 540;
-	_scroll_y = _player->GetPosY() - 360;
-	if (_scroll_x < 0) _scroll_x = 0;
-	if (_scroll_x > _w * 32 - 1080) _scroll_x = _w * 32 - 1080;
-	if (_scroll_y < 0) _scroll_y = 0;
-	if (_scroll_y > _h * 32 - 720) _scroll_y = _h * 32 - 720;
-
-	int x = _player->GetX(), y = _player->GetY() + 1;
-
-	if (_events_loc[x][y] != 0)
+	if (_player != nullptr)
 	{
-		int e = _events_loc[x][y]-1;
-		
-		if (e <= _events.size())
+		_scroll_x = _player->GetPosX() - 540;
+		_scroll_y = _player->GetPosY() - 360;
+	
+		if (_scroll_x < 0) _scroll_x = 0;
+		if (_scroll_x > _w * 32 - 1080) _scroll_x = _w * 32 - 1080;
+		if (_scroll_y < 0) _scroll_y = 0;
+		if (_scroll_y > _h * 32 - 720) _scroll_y = _h * 32 - 720;
+
+		int x = _player->GetX(), y = _player->GetY() + 1;
+
+		// Updating events
+		for (int i = 0; i < _events.size(); i++)
 		{
-			if (string(_events[e]->GetType()) == "Teleport")
+			if (string(_events[i]->GetType()) == "Animated_Tile")
 			{
-				Teleport_E *tp = (Teleport_E *)_events[e];
-				GoTo(tp->GetID());
-				_player->SetX(tp->GetX());
-				_player->SetY(tp->GetY());
+				Animated_Tile_E* buf = (Animated_Tile_E*)_events[i];
+				buf->Update(_player);
+				if (buf->isActivated())
+				{
+					_map[1][buf->GetX()][buf->GetY() + 1].SetID(buf->GetFrame());
+					
+				}
+			}
+			else if (string(_events[i]->GetType()) == "Teleport")
+			{
+				Teleport_E* buf = (Teleport_E*)_events[i];
+				buf->Update(_player);
+				if(buf->isDone()) GoTo(buf->GetID());
 			}
 		}
 	}
@@ -234,15 +266,12 @@ void Map::Display()
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_BLEND);
 
-		if (l == 1) _player->Display(_scroll_x, _scroll_y);
+		if (l == 1 && _player != nullptr) _player->Display(_scroll_x, _scroll_y);
 	}
 }
 
 void Map::Destroy()
 {
-	for (int i = 0; i < _w; i++) delete _events_loc[i];
-	delete _events_loc;
-
 	for (int i = 0; i < _w; i++) delete _collision[i];
 	delete _collision;
 
@@ -257,10 +286,21 @@ void Map::Destroy()
 	_events.clear();
 }
 
+int Map::GetW()
+{
+	return _w;
+}
+
+int Map::GetH()
+{
+	return _h;
+}
+
 void Map::MovePlayer(int speed, int dir)
 {
 	bool itsok = true, jump = false;
 	int x = _player->GetX(), y = _player->GetY() + 1;
+
 	if (!_player->isLocked())
 	{
 		if (dir == 0 && (y >= _h || _collision[x][y + 1] != 0)) itsok = false;
@@ -284,3 +324,4 @@ void Map::MovePlayer(int speed, int dir)
 	}
 	
 }
+

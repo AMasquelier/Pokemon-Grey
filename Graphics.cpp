@@ -28,6 +28,8 @@ void Bitmap::Load(const char *filename)
 {
 	SDL_Surface *img = IMG_Load(filename);
 
+	if (_loaded) glDeleteTextures(1, &_texture);
+
 	if (img)
 	{
 		_texture = 0;
@@ -74,12 +76,13 @@ void Bitmap::LoadText(TTF_Font * font, const char * text, SDL_Color color)
 {
 	SDL_Surface *img = TTF_RenderText_Blended(font, text, color);
 
+	if (_loaded) glDeleteTextures(1, &_texture);
+
 	if (img)
 	{
 		_texture = 0;
 		glGenTextures(1, &_texture);
 		glBindTexture(GL_TEXTURE_2D, _texture);
-
 		int nColors;
 		GLenum textureFormat;
 		nColors = img->format->BytesPerPixel;
@@ -113,6 +116,7 @@ void Bitmap::LoadText(TTF_Font * font, const char * text, SDL_Color color)
 		_loaded = true;
 		SDL_FreeSurface(img);
 	}
+	else cout << text << "  :  " << TTF_GetError() << endl;
 }
 
 void Bitmap::Destroy()
@@ -318,6 +322,35 @@ void Draw::BITMAP_region(double dx, double dy, double dw, double dh, double sx, 
 	glDisable(GL_BLEND);
 }
 
+void Draw::tinted_BITMAP(double x, double y, Color color, Bitmap * bmp)
+{
+	glEnable(GL_DEPTH);
+	glEnable(GL_TEXTURE_2D);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glColor4d(color.r, color.g, color.b, color.a);
+
+	glBindTexture(GL_TEXTURE_2D, bmp->GetTex());
+	glBegin(GL_QUADS);
+
+
+	glTexCoord2d(0, 0);
+	glVertex3d(x, y, 0);
+
+	glTexCoord2d(1, 0);
+	glVertex3d(x + bmp->GetW(), y, 0);
+
+	glTexCoord2d(1, 1);
+	glVertex3d(x + bmp->GetW(), y + bmp->GetH(), 0);
+
+	glTexCoord2d(0, 1);
+	glVertex3d(x, y + bmp->GetH(), 0);
+	glEnd();
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+}
+
 void Draw::tinted_BITMAP_region(double dx, double dy, double dw, double dh, double sx, double sy, double sw, double sh, Color color, Bitmap * bmp)
 {
 	glEnable(GL_DEPTH);
@@ -469,7 +502,6 @@ void Camera::Perspective()
 
 	glTranslated(-_pos.X(), -_pos.Y(), -1);
 
-	glMatrixMode(GL_MODELVIEW);
 
 }
 
@@ -503,15 +535,26 @@ void Camera::Update()
 
 	if (_x_limit_l != _x_limit_r)
 	{
-		if (_pos.X() - Display_info::width / (2 * _zoom) < _x_limit_l) _pos.SetX(_x_limit_l + Display_info::width / (2 * _zoom));
-		if (_pos.X() + Display_info::width / (2 * _zoom) > _x_limit_r) _pos.SetX(_x_limit_r - Display_info::width / (2 * _zoom));
+		if (_pos.X() < _x_limit_l)
+			_pos.SetX(_x_limit_l); 
+		if (_pos.X() + Display_info::width / _zoom > _x_limit_r)
+			_pos.SetX(_x_limit_r - Display_info::width / _zoom);
+		
+		if (_x_limit_r - _x_limit_l < Display_info::width / _zoom)
+			_pos.SetX((_x_limit_r + _x_limit_l) * 0.5  - 0.5 * Display_info::width / _zoom);
+
 	}
 
 	if (_y_limit_u != _y_limit_d)
 	{
-		if (_pos.Y() - Display_info::height / (2 * _zoom) < _y_limit_u) _pos.SetY(_y_limit_u + Display_info::height / (2 * _zoom));
-		if (_pos.Y() + Display_info::height / (2 * _zoom) > _y_limit_d) _pos.SetY(_y_limit_d - Display_info::height / (2 * _zoom));
+		if (_pos.Y() < _y_limit_u)
+			_pos.SetY(_y_limit_u);
+		if (_pos.Y() + Display_info::height / _zoom > _y_limit_d) 
+			_pos.SetY(_y_limit_d - Display_info::height / _zoom);
+		if (_y_limit_d - _y_limit_u < Display_info::height / _zoom)
+			_pos.SetY((_y_limit_d + _y_limit_u) * 0.5 - 0.5 * Display_info::height / _zoom);
 	}
+	//cout << _pos.X() << " : " << _x_limit_r << endl;
 }
 
 void Camera::Follow(Point2D * p)
@@ -573,4 +616,14 @@ double Camera::X()
 double Camera::Y()
 {
 	return _pos.Y();
+}
+
+void Camera::SetX(double x)
+{
+	_pos.SetX(x);
+}
+
+void Camera::SetY(double y)
+{
+	_pos.SetY(y);
 }

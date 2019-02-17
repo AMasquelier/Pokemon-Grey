@@ -5,9 +5,24 @@ Character::Character()
 {
 }
 
+void Character::SetName(string name)
+{
+	_name = name;
+}
+
+string Character::GetName()
+{
+	return _name;
+}
+
 bool Character::isLocked()
 {
 	return _lock;
+}
+
+int Character::GetDir()
+{
+	return _dir;
 }
 
 
@@ -28,7 +43,7 @@ void Player::Load(int x, int y)
 		eHP, eAtt, eDef, eAttSp = 0, eDefSp, eSpeed,
 		iHP, iAtt, iDef, iAttSp, iDefSp, iSpeed,
 		lvl, actHP, Item, sex, Id, xp, nbm, PPM[4], PPa[4], move[4];
-
+	cout << "Loading player..." << endl;
 	for (int i = 0; i < n; i++)
 	{
 		file >> name >> lvl >> xp >> actHP >> Item >> sex >> Id;
@@ -48,7 +63,6 @@ void Player::Load(int x, int y)
 				move[i] = 0;
 			}
 		}
-
 		_pkmns[i].Load(name,
 			nAtt, nDef, nAttSp, nDefSp, nSpeed,
 			eHP, eAtt, eDef, eAttSp, eDefSp, eSpeed,
@@ -62,8 +76,8 @@ void Player::Load(int x, int y)
 
 void Player::Display(double scroll_x, double scroll_y)
 {
-	
-	Draw::BITMAP_region(_pos.x, _pos.y , 64, 64, _sprite.x, _sprite.y, 32, 32, &_spriteset);
+	Draw::BITMAP_region(_pos.x+2, _pos.y , 64, 64, _sprite.x, _sprite.y, 32, 32, &_spriteset);
+	_nx = _x; _ny = _y;
 }
 
 void Player::Animate()
@@ -141,6 +155,26 @@ void Player::Animate()
 	center.Set(_pos.x + 32 - Display_info::width / 2, _pos.y + 32 - Display_info::height / 2);
 }
 
+void Player::SetNextPos(int x, int y)
+{
+	_nx = x; _ny = y;
+}
+
+int Player::GetNewX()
+{
+	return _nx;
+}
+
+int Player::GetNewY()
+{
+	return _ny;
+}
+
+void Player::SetPos(int x, int y)
+{
+	_x = x; _y = y;
+}
+
 void Player::SetX(int x)
 {
 	_x = x;
@@ -176,8 +210,14 @@ Point2D * Player::GetCenter()
 	return &center;
 }
 
+int Player::GetNbBadges()
+{
+	return _nb_badges;
+}
+
 void Player::Stay()
 {
+	_nx = -1; _ny = -1;
 	_x_os = _y_os = 0;
 	_animation = STAY;
 }
@@ -189,6 +229,10 @@ void Player::Walk(int dir)
 		_dir = dir;
 		_animation = WALK;
 		_lock = true;
+		if (dir == DOWN) _ny = _y + 1;
+		else if (dir == UP) _ny = _y - 1;
+		else if (dir == LEFT) _nx = _x - 1;
+		else if (dir == RIGHT) _nx = _x + 1;
 	}
 }
 
@@ -199,6 +243,10 @@ void Player::Run(int dir)
 		_dir = dir;
 		_animation = RUN;
 		_lock = true;
+		if (dir == DOWN) _ny = _y + 1;
+		else if (dir == UP) _ny = _y - 1;
+		else if (dir == LEFT) _nx = _x - 1;
+		else if (dir == RIGHT) _nx = _x + 1;
 	}
 }
 
@@ -216,6 +264,10 @@ void Player::Jump(int dir)
 		_animation = JUMP;
 		_lock = true;
 		_seq = 0;
+		if (dir == DOWN) _ny = _y + 2;
+		else if (dir == UP) _ny = _y - 2;
+		else if (dir == LEFT) _nx = _x - 2;
+		else if (dir == RIGHT) _nx = _x + 2;
 	}
 }
 

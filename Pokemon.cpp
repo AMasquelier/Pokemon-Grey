@@ -2,6 +2,8 @@
 #include "main.h"
 #include "Database.h"
 
+
+// Capacity
 Capacity::Capacity()
 {}
 
@@ -12,6 +14,7 @@ void Capacity::Load(int ID, string name, int type, int category, int target, int
 	int delay, int fhitsp,
 	bool Blocking, bool Cooldown, int recoil, int lifesteal, bool DoubleTap, bool Madness)
 {
+	
 	_ID = ID;
 	_name = name;
 	_type = type;
@@ -27,6 +30,8 @@ void Capacity::Load(int ID, string name, int type, int category, int target, int
 	_blocking = Blocking; _cooldown = Cooldown; _recoil = recoil; _lifesteal = lifesteal; _DoubleTap = DoubleTap; _Madness = Madness;
 }
 
+
+// Pokemon
 Pokemon::Pokemon()
 {
 }
@@ -42,6 +47,7 @@ void Pokemon::Load(string name, int nAtt, int nDef, int nAttSp, int nDefSp, int 
 	int nbm, int m[4], int PPM[4], int PPa[4])
 
 {
+	*this = (*Database::GetPkmn(ID));
 	char buf1[5], buf2[5];
 	string b = "/";
 
@@ -59,36 +65,35 @@ void Pokemon::Load(string name, int nAtt, int nDef, int nAttSp, int nDefSp, int 
 		if (PPM[i] > 0) nbMoves++;
 	}
 
-	_HP = int((_iHP + 2 * Database::GetPkmn(_ID).GetHP() + int(_eHP / 4))*(double(_Lvl) / 100.0) + 10 + _Lvl);
-	_Att = int((2 * Database::GetPkmn(_ID).GetAtt() + _iAtt + int(_eAtt / 4))*(double(_Lvl) / 100.0)) + 5;
-	_Def = int((2 * Database::GetPkmn(_ID).GetDef() + _iDef + int(_eDef / 4))*(double(_Lvl) / 100)) + 5;
-	_AttSp = int((2 * Database::GetPkmn(_ID).GetAttSp() + _iAttSp + int(_eAttSp / 4))*(double(_Lvl) / 100.0)) + 5;
-	_DefSp = int((2 * Database::GetPkmn(_ID).GetDefSp() + _iDefSp + int(_eDefSp / 4))*(double(_Lvl) / 100)) + 5;
-	_Speed = int((_iSpeed + 2 * Database::GetPkmn(_ID).GetSpeed() + int(_eSpeed / 4))*(double(_Lvl) / 100)) + 5;
+	_HP = int((_iHP + 2 * Database::GetPkmn(_ID)->GetHP() + int(_eHP / 4))*(double(_Lvl) / 100.0) + 10 + _Lvl);
+	_Att = int((2 * Database::GetPkmn(_ID)->GetAtt() + _iAtt + int(_eAtt / 4))*(double(_Lvl) / 100.0)) + 5;
+	_Def = int((2 * Database::GetPkmn(_ID)->GetDef() + _iDef + int(_eDef / 4))*(double(_Lvl) / 100)) + 5;
+	_AttSp = int((2 * Database::GetPkmn(_ID)->GetAttSp() + _iAttSp + int(_eAttSp / 4))*(double(_Lvl) / 100.0)) + 5;
+	_DefSp = int((2 * Database::GetPkmn(_ID)->GetDefSp() + _iDefSp + int(_eDefSp / 4))*(double(_Lvl) / 100)) + 5;
+	_Speed = int((_iSpeed + 2 * Database::GetPkmn(_ID)->GetSpeed() + int(_eSpeed / 4))*(double(_Lvl) / 100)) + 5;
 
 	//Combat
-	_poss_Back.x = (_ID % 5) * 483; _poss_Back.y = (_ID / 5) * 243;
+	/*_poss_Back.x = (_ID % 5) * 483; _poss_Back.y = (_ID / 5) * 243;
 	_posd_Back.h = _posd_Back.w = _poss_Back.h = _poss_Back.w = 240;
 	_posd_Back.x = 50; _posd_Back.y = 500;
 
 	_poss_Front.x = (_ID % 5) * 483; _poss_Front.y = (_ID / 5) * 243;
 	_poss_Front.h = _poss_Front.w = _posd_Front.h = _posd_Front.w = 240;
-	_posd_Front.x = 500; _posd_Front.y = 50;
-
+	_posd_Front.x = 500; _posd_Front.y = 50;*/
+	
 	_Name.LoadText(Database::font, _name.c_str(), Database::White);
 
 	_itoa(_actHP, buf1, 10); _itoa(_HP, buf2, 10);
 	if (_actHP != 0)	_Hp.LoadText(Database::font2, (buf1 + b + buf2).c_str(), Database::White);
 	else				_Hp.LoadText(Database::font2, "K.O.", Database::Red);
 	
-
 	_itoa(_Lvl, buf1, 10); b = "N.";
 	_lvl.LoadText(Database::font2, (b + buf1).c_str(), Database::White);
 
 	
 
 	long int xplvl1, xplvl2;
-	switch (Database::GetPkmn(_ID)._xpcourb)
+	switch (Database::GetPkmn(_ID)->_xpcourb)
 	{
 		case 0:
 			xplvl1 = 0.8 * pow(_Lvl, 3);
@@ -117,33 +122,26 @@ void Pokemon::Load(string name, int nAtt, int nDef, int nAttSp, int nDefSp, int 
 
 }
 
-void Pokemon::DisplayMin(int n)
+void Pokemon::DisplayMin(int n, int os)
 {	
-	Draw::BITMAP_region(0, 40 + 70 * n, 68, 68, ((_ID + 1) % 10) * 68, ((_ID + 1) / 10) * 34, 34, 34, &Database::pkmn_min);
+	Draw::BITMAP_region(0, 40 + os + 70 * n, 68, 68, ((_ID + 1) % 10) * 68, ((_ID + 1) / 10) * 35, 34, 34, &Database::pkmn_min);
 	
-	Draw::BITMAP(66, 76 + 70 * n, &_Name);
-	Draw::BITMAP(66, 92 + 70 * n, &_lvl);
-	Draw::BITMAP(134 - _Hp.GetW(), 116 + 70 * n, &_Hp);
-	Draw::BITMAP_region(84, 106 + 70 * n, 48.0 * (double(_actHP) / _HP), 3, 0, 3 * int(log(double(_actHP) / _HP) / log(0.5)), 48.0 * (double(_actHP) / _HP), 3, &Database::pkmn_hpBar);
-	Draw::BITMAP_region(28, 114 + 70 * n, 8, 8, 0, 8 * _Sex, 8, 8, &Database::pkmn_sex);
+	Draw::BITMAP(66, 76 + 70 * n + os, &_Name);
+	Draw::BITMAP(66, 92 + 70 * n + os, &_lvl);
+	Draw::BITMAP(134 - _Hp.GetW(), 116 + 70 * n + os, &_Hp);
+	Draw::BITMAP_region(84, 106 + os + 70 * n, 48.0 * (double(_actHP) / _HP), 3, 0, 3 * int(log(double(_actHP) / _HP) / log(0.5)), 48.0 * (double(_actHP) / _HP), 3, &Database::pkmn_hpBar);
+	Draw::BITMAP_region(28, 114 + os + 70 * n, 8, 8, 0, 8 * _Sex, 8, 8, &Database::pkmn_sex);
 
-	if(_Item != -1) Draw::BITMAP_region(42, 96 + 70 * n, 16, 16, 0, 0, 16, 16, &Database::pkmn_item);
+	if(_Item != -1) Draw::BITMAP_region(42, 96 + os + 70 * n, 16, 16, 0, 0, 16, 16, &Database::pkmn_item);
 }
 
 void Pokemon::bLoad(string name, int ID, int HP, int Att, int Def, int AttSp, int DefSp, int Speed, int xpcourb, int type1, int type2, int BasicXP)
 {
-	_name = name; _ID = ID; _HP = HP; _Att = Att; _Def = Def; _AttSp = AttSp; _DefSp = DefSp; _Speed = Speed;	_xpcourb = xpcourb; _type1 = type1; _type2 = type2;
+	_catch_t = 45; // TODO
+	_name.resize(name.size());
+	for (int i = 0; i < name.size(); i++) _name[i] = name[i]; 
+	_ID = ID; _HP = HP; _Att = Att; _Def = Def; _AttSp = AttSp; _DefSp = DefSp; _Speed = Speed;	_xpcourb = xpcourb; _type1 = type1; _type2 = type2;
 	_BasicXP = BasicXP;
-	_poss_Back.x = (_ID % 5) * 483; _poss_Back.y = (_ID / 5) * 243;
-	_posd_Back.h = _posd_Back.w = _poss_Back.h = _poss_Back.w = 240;
-	_posd_Back.x = 50; _posd_Back.y = 500;
-	_poss_Front.x = (_ID % 5) * 483; _poss_Front.y = (_ID / 5) * 243;
-	_poss_Front.h = _poss_Front.w = _posd_Front.h = _posd_Front.w = 240;
-	_posd_Front.x = 500; _posd_Front.y = 50;
-
-	_poss_Min.x = ((_ID + 1) % 5) * 136; _poss_Min.y = ((_ID + 2) / 5) * 64;
-	_poss_Min.h = _poss_Min.w = _posd_Min.h = _posd_Min.w = 64;
-	_posd_Min.x = 0; _posd_Min.y = 10;
 }
 
 
@@ -175,6 +173,11 @@ void Pokemon::SetXP(int v)
 	_Xp = v;
 }
 
+int Pokemon::GetLvl()
+{
+	return _Lvl;
+}
+
 int Pokemon::GetItem()
 {
 	return _Item;
@@ -195,23 +198,18 @@ Pokemon Pokemon::operator=(Pokemon P)
 	_xpcourb = P._xpcourb;
 	char buf1[5], buf2[5];
 
-	_HP = int((_iHP + 2 * Database::GetPkmn(_ID).GetHP() + int(_eHP / 4))*(double(_Lvl) / 100.0) + 10 + _Lvl);
-	_Att = int((2 * Database::GetPkmn(_ID).GetAtt() + _iAtt + int(_eAtt / 4))*(double(_Lvl) / 100.0)) + 5;
-	_Def = int((2 * Database::GetPkmn(_ID).GetDef() + _iDef + int(_eDef / 4))*(double(_Lvl) / 100)) + 5;
-	_AttSp = int((2 * Database::GetPkmn(_ID).GetAttSp() + _iAttSp + int(_eAttSp / 4))*(double(_Lvl) / 100.0)) + 5;
-	_DefSp = int((2 * Database::GetPkmn(_ID).GetDefSp() + _iDefSp + int(_eDefSp / 4))*(double(_Lvl) / 100)) + 5;
-	_Speed = int((_iSpeed + 2 * Database::GetPkmn(_ID).GetSpeed() + int(_eSpeed / 4))*(double(_Lvl) / 100)) + 5;
+	_HP = int((_iHP + 2 * Database::GetPkmn(_ID)->GetHP() + int(_eHP / 4))*(double(_Lvl) / 100.0) + 10 + _Lvl);
+	_Att = int((2 * Database::GetPkmn(_ID)->GetAtt() + _iAtt + int(_eAtt / 4))*(double(_Lvl) / 100.0)) + 5;
+	_Def = int((2 * Database::GetPkmn(_ID)->GetDef() + _iDef + int(_eDef / 4))*(double(_Lvl) / 100)) + 5;
+	_AttSp = int((2 * Database::GetPkmn(_ID)->GetAttSp() + _iAttSp + int(_eAttSp / 4))*(double(_Lvl) / 100.0)) + 5;
+	_DefSp = int((2 * Database::GetPkmn(_ID)->GetDefSp() + _iDefSp + int(_eDefSp / 4))*(double(_Lvl) / 100)) + 5;
+	_Speed = int((_iSpeed + 2 * Database::GetPkmn(_ID)->GetSpeed() + int(_eSpeed / 4))*(double(_Lvl) / 100)) + 5;
+
+	_BasicXP = P._BasicXP;
+	_type1 = P._type1; _type2 = P._type2;
 
 	//Combat
-	_poss_Back.x = (_ID % 5) * 483; _poss_Back.y = (_ID / 5) * 243;
-	_posd_Back.h = _posd_Back.w = _poss_Back.h = _poss_Back.w = 240;
-	_posd_Back.x = 50; _posd_Back.y = 500;
-
-	_poss_Front.x = (_ID % 5) * 483; _poss_Front.y = (_ID / 5) * 243;
-	_poss_Front.h = _poss_Front.w = _posd_Front.h = _posd_Front.w = 240;
-	_posd_Front.x = 500; _posd_Front.y = 50;
-
-	_Name.LoadText(Database::font, _name.c_str(), Database::White);
+	_Name.LoadText(Database::font, _bname.c_str(), Database::White);
 
 	_itoa(_actHP, buf1, 10); _itoa(_HP, buf2, 10);
 	if (_actHP != 0)	_Hp.LoadText(Database::font2, (buf1 + b + buf2).c_str(), Database::White);
@@ -224,7 +222,7 @@ Pokemon Pokemon::operator=(Pokemon P)
 
 
 	long int xplvl1, xplvl2;
-	switch (Database::GetPkmn(_ID)._xpcourb)
+	switch (Database::GetPkmn(_ID)->_xpcourb)
 	{
 	case 0:
 		xplvl1 = 0.8 * pow(_Lvl, 3);
