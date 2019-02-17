@@ -27,13 +27,14 @@ class Database
 	public:
 		static void Load(); 
 		static void Destroy();
-		static Pokemon GetPkmn(int ID);
+		static Pokemon *GetPkmn(int ID);
 		static Item *GetItem(int ID);
+		static Capacity *GetCapacity(int ID);
 		
 
 		static double TypesEfficcacity[17][17];
-		static TTF_Font *font, *font1, *font2, *font3, *font4;
-		static SDL_Color Black, Red, White;
+		static TTF_Font *font, *font1, *font2, *font3, *font4, *font20, *font17;
+		static SDL_Color Black, Red, White, Sad_White;
 		static Bitmap pkmn_min, pkmn_front, pkmn_back;
 		static Bitmap pkmn_sex, pkmn_hpBar, pkmn_xpBar, pkmn_types, pkmn_item;
 		static Bitmap items;

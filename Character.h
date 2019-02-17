@@ -6,14 +6,17 @@ class Character
 {
 	public:
 		Character();
+		void SetName(string name);
+		string GetName();
 		bool isLocked();
+		int GetDir();
 
 	protected:
 		enum { STAY, WALK, RUN, JUMP };
 		enum { DOWN, UP, LEFT, RIGHT };
 
 
-
+		string _name;
 		SDL_Rect _pos, _sprite;
 		int _x, _y;
 		int _animation = STAY, _frame = 0, _dir = 0;
@@ -39,6 +42,10 @@ class Player : public Trainer
 		void Display(double scroll_x, double scroll_y);
 		void Animate();
 		
+		void SetNextPos(int x, int y);
+		int GetNewX();
+		int GetNewY();
+		void SetPos(int x, int y);
 		void SetX(int x);
 		void SetY(int y);
 		int GetX();
@@ -47,6 +54,8 @@ class Player : public Trainer
 		int GetPosY();
 		Point2D *GetCenter();
 
+		int GetNbBadges();
+
 		void Stay();
 		void Walk(int dir);
 		void Run(int dir);
@@ -54,6 +63,8 @@ class Player : public Trainer
 		void Jump(int dir);
 		
 	private:
+		int _nx, _ny;
+		int _nb_badges = 0;
 		Point2D center;
 		Bitmap _spriteset;
 };

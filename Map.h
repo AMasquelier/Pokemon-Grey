@@ -5,6 +5,8 @@
 #include "Character.h"
 #include "Event.h"
 
+
+
 class Map
 {
 	public:
@@ -15,6 +17,8 @@ class Map
 		void Update();
 		void Display();
 		void Destroy();
+		int GetW();
+		int GetH();
 
 		void MovePlayer(int speed, int dir);
 
@@ -25,7 +29,6 @@ class Map
 		Player *_player;
 		Tile ***_map;
 		int **_collision;
-		int **_events_loc;
 		Bitmap _tileset;
 		vector<Event*> _events;
 };

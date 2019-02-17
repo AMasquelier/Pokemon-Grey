@@ -16,6 +16,7 @@
 #include <fstream>
 #include <random>
 #include <string>
+#include <windows.h>
 
 #define PI 3.14159265
 using namespace std;
@@ -35,6 +36,39 @@ public:
 
 private:
 	chrono::time_point<chrono::steady_clock> begin;
+};
+
+class Clock
+{
+public:
+	Clock() {}
+
+	inline void start()
+	{
+		_start = std::chrono::high_resolution_clock::now();
+	}
+
+	// Return the duration in microseconds
+	inline int duration()
+	{
+		std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		return std::chrono::duration_cast<std::chrono::microseconds>(end - _start).count();
+	}
+
+	static void sleep(double ms)
+	{
+		Sleep(ms);
+	}
+
+	// Return actual time in microseconds
+	static int now()
+	{
+		return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+	}
+
+
+private:
+	std::chrono::high_resolution_clock::time_point _start;
 };
 
 double GE_getTime();

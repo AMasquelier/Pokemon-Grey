@@ -2,6 +2,7 @@
 #include "Basics.h"
 #include "Graphics.h"
 #include "Inputs.h"
+#include "Character.h"
 
 class MainInfoGUI
 {
@@ -27,6 +28,7 @@ class PkmnTeamGUI
 		static void Update();
 		static int Using_item, _Giving_item;
 		static int Healing;
+		static int Selected_Pkmn;
 	private:
 		static Chrono input_chrono;
 		static int last_input;
@@ -63,12 +65,19 @@ class FightGUI
 	public:
 		static void Init();
 		static void Destroy();
-		static void Display();
-		static void Update();
+		//static void Battle(Player *p, Trainer *t);
+		static void Battle(Player *p, int PkmnID, int lvl, int background);
+		static void CoughtPokemon(Pokemon &pkmn);
 		static bool Fighting;
+		static int actPkmn;
+		static int ThrowBall;
+		static int lost_tariff[9];
 
 	private:
 		static Chrono input_chrono;
 		static int last_input;
-		static Bitmap _menu, _label, _label_cursor;
+		static Bitmap _background, _HpBarTop, _HpBarDown, _baseFront, _baseBack;
+		static Bitmap _Battlebox, _actionBox, _cursor, _moveBox, _balls;
+		static Bitmap _Attack, _Bag, _PkmnTeam, _Run;
+		static int _move_pos, _action_pos;
 };

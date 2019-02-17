@@ -7,6 +7,7 @@ class Tile
 		Tile();
 		void Load(double x, double y, int ID);
 		void Display(int tex_w, int tex_h);
+		void SetID(int ID);
 		int GetID();
 
 	private:

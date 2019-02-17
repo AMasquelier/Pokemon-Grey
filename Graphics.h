@@ -53,6 +53,7 @@ public:
 	static void BITMAP(double x, double y, Bitmap *bmp);
 	static void Rotated_BITMAP(double x, double y, double cx, double cy, float a, Bitmap *bmp);
 	static void BITMAP_region(double dx, double dy, double dw, double dh, double sx, double sy, double sw, double sh, Bitmap *bmp);
+	static void tinted_BITMAP(double x, double y, Color color, Bitmap *bmp);
 	static void tinted_BITMAP_region(double dx, double dy, double dw, double dh, double sx, double sy, double sw, double sh, Color color, Bitmap * bmp);
 	static void Rotated_BITMAP_Region(double dx, double dy, double dw, double dh, double sx, double sy, double sw, double sh, double cx, double cy, float a, Bitmap * bmp);
 	static void tinted_Rotated_BITMAP_Region(double dx, double dy, double dw, double dh, double sx, double sy, double sw, double sh, double cx, double cy, float a, Color color, Bitmap * bmp);
@@ -81,6 +82,8 @@ public:
 	void SetLimit(double lx, double rx, double uy, double dy);
 	double X();
 	double Y();
+	void SetX(double x);
+	void SetY(double y);
 
 private:
 	Point2D _pos;

@@ -48,11 +48,7 @@ private:
 	int _MinAnim = 0, _FrontAnim = 0, _BackAnim = 0;
 	int _status = 0;
 
-
-	SDL_Rect _posd_Min, _poss_Min, _pos_label, _pos_Name, _pos_Hp, _possHpBar, _posdHpBar, _posd_Sex, _poss_Sex;
 	Bitmap _Hp, _HpBar, _Name, _lvl;
-
-	SDL_Rect _posd_Front, _poss_Front, _posd_Back, _poss_Back, _pos_lvl, _poss_item, _posd_item;
 
 	int _MinI = 0;
 
@@ -66,7 +62,7 @@ public:
 		int lvl, int actHP, int Item, int sex, int ID, int xp,
 		int nbm, int m[4], int PPM[4], int PPa[4]);
 	void ReloadMin();
-	void DisplayMin(int n);
+	void DisplayMin(int n, int os);
 	void DisplayFront();
 	void DisplayBack();
 	void Resume();
@@ -84,6 +80,7 @@ public:
 	int GetCatch_t();
 	int GetXP();
 	void SetXP(int v);
+	int GetLvl();
 	int GetItem();
 	void SetItem(int i);
 	string GetName();

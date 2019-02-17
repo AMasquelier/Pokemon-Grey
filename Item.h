@@ -10,17 +10,17 @@ public:
 	Item();
 	void Load(int ID, string name, int type, string desc[3]);
 	virtual bool Effect(Pokemon *target, Character *trainer);
-	void Display(int n);
 	Item operator=(Item P);
 	int GetID();
 	int GetType();
 	int GetCategory();
+	Bitmap *GetNameBMP();
+	Bitmap *GetDescBMP();
 	string GetName();
 	string GetDesc(int i);
 	void SetNb(int nb);
-
 	
-	void Display_desc();
+	
 
 private:
 	int _ID;
@@ -36,8 +36,8 @@ class Item_bag
 public:
 	Item_bag();
 	void Load(int ID, string name, int type, string desc[3]);
-	virtual bool Effect(Pokemon *target, Character *trainer);
 	void Display(int n);
+	Bitmap *GetNbBMP();
 	void equal(Item *P);
 	int GetID();
 	int GetType();
