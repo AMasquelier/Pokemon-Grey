@@ -1,0 +1,26 @@
+20
+Master_Ball Ne_peut_pas_échouer _ _ 0 255
+Hyper_Ball Plus_performante_qu'une Super_Ball _ 0 2
+Super_Ball Plus_performante_qu'une Poké_Ball _ 0 1.5
+Poké_Ball Objet_qui_permet capturer_un_Pokémon _ 0 1
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Potion Rends_20PV_à_un_Pokémon _ _ 1 20 0 0 0 0 0 0 0 0 0 0 0 0 0
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Guérison Rends_tout_ses_PV_à_un Pokémon _ 1 99999 0 0 0 0 0 0 0 0 0 0 0 0 0
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Unnamed _ _ _ 0 255
+Vodka Nasdrovia_! _ _ 0 255
+Tequila Augmente_toutes_les statistiques_du_Pokémon mais_rends_confus 0 255
+Unnamed _ _ _ 0 255
