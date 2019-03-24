@@ -18,6 +18,32 @@ class MainInfoGUI
 
 };
 
+typedef struct DChoice
+{
+	vector<string> choices;
+	int pos;
+} DChoice;
+
+class DialogueGUI
+{
+	public:
+		static void Init();
+		static void Destroy();
+		static void Display();
+		static void Update();
+		static void LoadScript(string ID);
+
+	private:
+		static int find_ID(string ID, ifstream *file);
+
+		static Bitmap _Box;
+
+		static string _ID;
+		static vector<string> _text;
+		static vector<int> _data;
+		static vector<DChoice> _choices;
+};
+
 
 class PkmnTeamGUI
 {
@@ -67,7 +93,7 @@ class FightGUI
 		static void Destroy();
 		//static void Battle(Player *p, Trainer *t);
 		static void Battle(Player *p, int PkmnID, int lvl, int background);
-		static void CoughtPokemon(Pokemon &pkmn);
+		static void CaughtPokemon(Pokemon &pkmn, Player *p);
 		static bool Fighting;
 		static int actPkmn;
 		static int ThrowBall;

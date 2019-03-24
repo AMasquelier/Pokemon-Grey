@@ -84,6 +84,8 @@ public:
 	int GetItem();
 	void SetItem(int i);
 	string GetName();
+	int GetSex();
+
 	int _xpcourb;
 	double xpcoef;
 	int _type1, _type2;

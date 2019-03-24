@@ -53,6 +53,7 @@ class Player : public Trainer
 		int GetPosX();
 		int GetPosY();
 		Point2D *GetCenter();
+		bool AddToTeam(Pokemon *pkmn);
 
 		int GetNbBadges();
 

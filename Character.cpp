@@ -76,7 +76,7 @@ void Player::Load(int x, int y)
 
 void Player::Display(double scroll_x, double scroll_y)
 {
-	Draw::BITMAP_region(_pos.x+2, _pos.y , 64, 64, _sprite.x, _sprite.y, 32, 32, &_spriteset);
+	Draw::BITMAP_region(_pos.x, _pos.y , 64, 64, _sprite.x, _sprite.y, 32, 32, &_spriteset);
 	_nx = _x; _ny = _y;
 }
 
@@ -130,11 +130,18 @@ void Player::Animate()
 			_frame = 4 + _seq;
 			break;
 		case JUMP:
-			if(_seq > 1) _seq += 0.2;
-			else _seq += 0.08;
-			if (x_dir != 0) _x_os = _seq / 2.0;
-			if (y_dir != 0) _y_os = _seq / 2.0;
-			if (_seq >= 3.98)
+			_seq += 0.2;
+			if (_seq > 1)
+			{
+				if (x_dir != 0) _y_os += 0.03 * pow(_seq, 2) / 3;
+				if (y_dir != 0) _y_os += 0.03 * pow(_seq, 2) / 3;
+			}
+			else
+			{
+				if (x_dir != 0) _x_os -= 0.05;
+				if (y_dir != 0) _y_os -= 0.05;
+			}
+			if (_x_os >= 2 || _y_os >= 2)
 			{
 				_x_os = _y_os = 0;
 				_lock = false;
@@ -208,6 +215,26 @@ int Player::GetPosY()
 Point2D * Player::GetCenter()
 {
 	return &center;
+}
+
+bool Player::AddToTeam(Pokemon *pkmn)
+{
+	if (_nb_pkmn < 6)
+	{
+		int m[4] = { 0, 0, 0, 0 }, PPM[4] = { 0, 0, 0, 0 }, PPA[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < pkmn->nbMoves; i++)
+		{
+			m[i] = pkmn->_moves[i]._ID;
+			PPM[i] = pkmn->_moves[i]._PP;
+			PPA[i] = pkmn->_moves[i]._actPP;
+		}
+		_pkmns[_nb_pkmn].Load(pkmn->GetName(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+							pkmn->GetLvl(), pkmn->GetActHP(), 0, pkmn->GetSex(), pkmn->GetID(), 0,
+							pkmn->nbMoves, m, PPM, PPA);
+		_nb_pkmn++;
+		return true;
+	}
+	return false;
 }
 
 int Player::GetNbBadges()

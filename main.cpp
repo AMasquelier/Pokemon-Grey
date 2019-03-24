@@ -61,7 +61,7 @@ void Main::MainLoop()
 	Clock framerate_timer; framerate_timer.start();
 
 	Player *player = Player_info::GetPlayer_ptr();
-	player->SetPos(8, 11);
+	player->SetPos(8, 10);
 	player->SetName("Red");
 
 
@@ -82,7 +82,9 @@ void Main::MainLoop()
 	int wx = 0, wy = 0;
 	float opacity = 1;
 
-	Main::GUI = 3;
+	//Main::GUI = 3;
+
+	DialogueGUI::LoadScript("TEST");
 
 	while (Keep && !input.CloseGame)
 	{
@@ -105,7 +107,7 @@ void Main::MainLoop()
 			}
 			else if (GUI == 1) PkmnTeamGUI::Update();
 			else if (GUI == 2) BagGUI::Update();
-			else if (GUI == 3)FightGUI::Battle(Player_info::GetPlayer_ptr(), 5, 100, 0);
+			else if (GUI == 3) FightGUI::Battle(Player_info::GetPlayer_ptr(), 5, 100, 0);
 
 			map.Update();
 			player->Animate();
@@ -239,7 +241,7 @@ int main(int argc, char *argv[])
 	FightGUI::Init();
 
 	Main::MainLoop();
-	//Main::Editor();
+	Main::Editor();
 
 	Main::Exit();
 

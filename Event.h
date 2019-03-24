@@ -12,7 +12,7 @@ class Event
 		char *_type = "Event";
 };
 
-class Dialog_E : public Event
+class Dialogue_E : public Event
 {
 	public:
 

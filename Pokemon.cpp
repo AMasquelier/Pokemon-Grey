@@ -167,6 +167,10 @@ int Pokemon::GetStatus() { return _status; }
 void Pokemon::SetStatus(int v) { _status = v; }
 int Pokemon::GetCatch_t() { return _catch_t; }
 string Pokemon::GetName() { return _name; }
+int Pokemon::GetSex()
+{
+	return _Sex;
+}
 int Pokemon::GetXP() { return _Xp; }
 void Pokemon::SetXP(int v)
 {

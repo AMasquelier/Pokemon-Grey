@@ -54,6 +54,116 @@ void MainInfoGUI::Update()
 {
 }
 
+// Dialogue GUI < Work in progress >
+Bitmap DialogueGUI::_Box;
+
+string DialogueGUI::_ID;
+vector<string> DialogueGUI::_text;
+vector<int> DialogueGUI::_data;
+vector<DChoice> DialogueGUI::_choices;
+
+void DialogueGUI::Init()
+{
+	if (!_Box.isLoaded()) _Box.Load("Menu/Dialogue.png");
+
+}
+
+void DialogueGUI::Destroy()
+{
+}
+
+void DialogueGUI::Display()
+{
+}
+
+void DialogueGUI::Update()
+{
+	// Controls
+
+	// Manage script
+}
+
+void DialogueGUI::LoadScript(string ID)
+{
+	ifstream file("Dialogue.txt", std::ios::in);
+	cout << "Reading Dialogues file..." << endl;
+	int pos = 0;
+	string act_line;
+	if (file)
+	{
+		int pos_ID = find_ID(ID, &file);
+		if (pos_ID != -1)
+		{
+			file.seekg(pos_ID);
+
+			file >> act_line;
+			while (act_line != "<END>")
+			{
+				if (act_line == ">")
+				{
+					string buf;
+					file >> buf;
+					_text.push_back(buf);
+					pos++;
+				}
+				else if (act_line == "<CHOICE>")
+				{
+					DChoice buf1;
+					string buf2;
+
+					buf1.pos = pos - 1;
+					file >> buf2;
+					while (buf2 != "</>")
+					{
+						buf1.choices.push_back(buf2);
+						file >> buf2;
+					}
+					_choices.push_back(buf1);
+				}
+
+				file >> act_line;
+			}
+			file.close();
+		}
+		else cout << "Missing Dialogues file" << endl;
+
+		cout << _text.size() << " Dialogue lines" << endl;
+		for (int i = 0; i < _text.size(); i++)
+			cout << i << " > " << _text[i] << endl;
+
+		cout << _choices.size() << " choices to make" << endl;
+		for (int i = 0; i < _choices.size(); i++)
+		{
+			cout << "Choice n." << i + 1 << "(size : " << _choices[i].choices.size() << ", pos : " << _choices[i].pos << ")" << endl;
+			for (int j = 0; j < _choices[i].choices.size(); j++)
+				cout << "    " << _choices[i].choices[j] << endl;
+		}
+
+	}
+	else cout << "No " << ID << " found" << endl;
+}
+
+int DialogueGUI::find_ID(string ID, ifstream *file)
+{
+	int beg_pos = file->tellg();
+	bool found = false;
+	string act_line;
+
+	while (!file->eof() && !found)
+	{
+		int last_pos = file->tellg();
+		(*file) >> act_line;
+		if (act_line == "#" + ID)
+		{
+			(*file) >> act_line;
+			found = true;
+		}
+		return last_pos;
+	}
+	return -1;
+}
+
+
 // Pokemon team GUI
 Bitmap PkmnTeamGUI::_menu, PkmnTeamGUI::_label, PkmnTeamGUI::_label_cursor, PkmnTeamGUI::_choice_box, PkmnTeamGUI::_cursor;
 Bitmap PkmnTeamGUI::_resume, PkmnTeamGUI::_capacities, PkmnTeamGUI::_item, PkmnTeamGUI::_move, PkmnTeamGUI::_back, PkmnTeamGUI::_choose;
@@ -616,6 +726,8 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 	double ActTime = 0, LastTime = 0, frame_rate = 90;
 	bool Keep = true;
 
+	//Keep = false; caught = true;
+
 	while ((Keep && !Main::input.CloseGame) || (waiting_pushA))
 	{
 		ActTime = GE_getTime();
@@ -1075,7 +1187,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 			}
 
 			// Display
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT);
 
 			cam.Update();
 			cam.Perspective();
@@ -1155,20 +1267,32 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 		}
 		else GE_rest(1000.0 / frame_rate - (ActTime - LastTime));
 	}
-	if (caught) CoughtPokemon(Pkmn);
+	if (caught) CaughtPokemon(Pkmn, p);
 	Fighting = false;
 	Main::GUI = 0;
 }
 
-void FightGUI::CoughtPokemon(Pokemon &pkmn)
+void FightGUI::CaughtPokemon(Pokemon &pkmn, Player *p)
 {
 	Camera cam;
 	cam.SetPos(0, 0, 0);
+	
+	Bitmap txt, cbot, cmid, ctop, cursor, yes, no;
+	txt.LoadText(Database::font1, ("Donner un surnom au " + pkmn.GetName() + " capturé ? ").c_str(), Database::White);
+	cbot.Load("Menu/chboxbot.png");
+	cmid.Load("Menu/chboxmid.png");
+	ctop.Load("Menu/chboxtop.png");
+	cursor.Load("Menu/itemcurs.png");
+	yes.LoadText(Database::font4, "Oui", Database::White);
+	no.LoadText(Database::font4, "Non", Database::White);
 
-
+	int pos_curs = 0;
+	bool choice = false;
 
 	double ActTime = 0, LastTime = 0, frame_rate = 90;
 	bool Keep = true;
+
+	
 	while (Keep)
 	{
 		ActTime = GE_getTime();
@@ -1177,15 +1301,49 @@ void FightGUI::CoughtPokemon(Pokemon &pkmn)
 			Main::input.UpdateControllerInputs(true);
 			Main::input.UpdateKeyboardInputs(true);
 
+			if (!choice)
+			{
+				if (Main::input.pushedInput(Main::input.Down) || Main::input.pushedInput(Main::input.S))
+					pos_curs = 1;
+				else if (Main::input.pushedInput(Main::input.Up) || Main::input.pushedInput(Main::input.Z))
+					pos_curs = 0;
+				if (Main::input.pushedInput(Main::input.Space))
+					choice = true;
+			}
+			if (choice)
+			{
+				if (pos_curs == 1)
+				{
+					if (p->AddToTeam(&pkmn)) Keep = false;
+					// else put it in a box - TODO
+				}
+			}
+			// Display
 			glClear(GL_COLOR_BUFFER_BIT);
 
 			cam.Update();
 			cam.Perspective();
+
+			Draw::BITMAP(0, 0, &_background);
+			Draw::BITMAP_region(460, 280, 160, 160, 161 * (pkmn.GetID() % 5), 81 * (pkmn.GetID() / 5), 80, 80, &Database::pkmn_front);
+			
+			Draw::BITMAP(0, 720 - 144, &_Battlebox);
+			Draw::BITMAP(20, 600, &txt);
+
+			if (!choice)
+			{
+				Draw::BITMAP(930, 590, &ctop);
+				Draw::BITMAP_region(930, 595, 125, 45, 0, 0, 125, 45, &cmid);
+				Draw::BITMAP(930, 640, &cbot);
+				Draw::BITMAP(935, 600 + 20 * pos_curs, &cursor);
+				Draw::BITMAP(960, 600, &yes);
+				Draw::BITMAP(960, 620, &no);
+			}
 
 			SDL_GL_SwapWindow(Main::screen);
 			LastTime = ActTime;
 		}
 		else GE_rest(1000.0 / frame_rate - (ActTime - LastTime));
 	}
+	
 }
-
