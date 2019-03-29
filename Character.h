@@ -10,6 +10,8 @@ class Character
 		string GetName();
 		bool isLocked();
 		int GetDir();
+		int GetX();
+		int GetY();
 
 	protected:
 		enum { STAY, WALK, RUN, JUMP };
@@ -24,7 +26,22 @@ class Character
 		bool _lock = false;
 };
 
-class Trainer : public Character
+class NPC : public Character
+{
+	public:
+		NPC();
+		void Load(string name, int ID, int x, int y);
+		void Display_top();
+		void Display_bot();
+
+	private:
+		static Bitmap _spriteset;
+		int _ID;
+};
+
+
+
+class Trainer : public NPC
 {
 	public:
 		int GetNbPkmn();
@@ -39,7 +56,8 @@ class Player : public Trainer
 {
 	public:
 		void Load(int x, int y);
-		void Display(double scroll_x, double scroll_y);
+		void Display_top();
+		void Display_bot();
 		void Animate();
 		
 		void SetNextPos(int x, int y);
@@ -56,6 +74,7 @@ class Player : public Trainer
 		bool AddToTeam(Pokemon *pkmn);
 
 		int GetNbBadges();
+		int GetMoney();
 
 		void Stay();
 		void Walk(int dir);
@@ -66,6 +85,7 @@ class Player : public Trainer
 	private:
 		int _nx, _ny;
 		int _nb_badges = 0;
+		int _money = 999999;
 		Point2D center;
 		Bitmap _spriteset;
 };

@@ -4,6 +4,7 @@
 #include "Basics.h"
 #include "Graphics.h"
 #include "Inputs.h"
+#include "Sound.h"
 
 class Main
 {

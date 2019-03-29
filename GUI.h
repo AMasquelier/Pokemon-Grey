@@ -3,6 +3,7 @@
 #include "Graphics.h"
 #include "Inputs.h"
 #include "Character.h"
+#include "Dialogue.h"
 
 class MainInfoGUI
 {
@@ -14,7 +15,9 @@ class MainInfoGUI
 
 	private:
 		static Bitmap _menu, _playerName, _money, _badges, _dex, _playTime;
+		static Bitmap _time;
 		static Bitmap _team_status;
+		static Clock _refresh_time;
 
 };
 
@@ -36,12 +39,16 @@ class DialogueGUI
 	private:
 		static int find_ID(string ID, ifstream *file);
 
-		static Bitmap _Box;
+		static Dialogue _dial;
+		static Bitmap _Box, _lines[3];
+		static Bitmap _ChoiceBox, _cursor, _choices_bmp[3];
 
 		static string _ID;
-		static vector<string> _text;
-		static vector<int> _data;
-		static vector<DChoice> _choices;
+
+		static bool _update_text, _choosing;
+		static Choice *_choice;
+		static int _pos_cursor;
+		static bool _stop;
 };
 
 
@@ -100,6 +107,7 @@ class FightGUI
 		static int lost_tariff[9];
 
 	private:
+		static Mix_Chunk *_ball_sound[4], *_launch_ball, *_attack_sound;
 		static Chrono input_chrono;
 		static int last_input;
 		static Bitmap _background, _HpBarTop, _HpBarDown, _baseFront, _baseBack;

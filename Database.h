@@ -4,6 +4,7 @@
 #include "Character.h"
 #include "Graphics.h"
 #include "Item.h"
+#include "Sound.h"
 
 class Player_info
 {
@@ -38,6 +39,8 @@ class Database
 		static Bitmap pkmn_min, pkmn_front, pkmn_back;
 		static Bitmap pkmn_sex, pkmn_hpBar, pkmn_xpBar, pkmn_types, pkmn_item;
 		static Bitmap items;
+		static Mix_Music *_battle_wild;
+		static Sound hop_jump, step_out;
 
 	private:
 		static vector<Pokemon> _pkmns;
