@@ -130,6 +130,8 @@ vector<Item*> Database::_items;
 Bitmap Database::pkmn_min, Database::pkmn_front, Database::pkmn_back;
 Bitmap Database::pkmn_sex, Database::pkmn_hpBar, Database::pkmn_xpBar, Database::pkmn_types, Database::pkmn_item;
 Bitmap Database::items;
+Mix_Music *Database::_battle_wild;
+Sound Database::hop_jump, Database::step_out;
 void Database::Load()
 {
 	// Colors
@@ -227,6 +229,10 @@ void Database::Load()
 		_pkmns[i].bLoad(pname, i, hp, att, def, attsp, defsp, speed, xpcourb, type1, type2, BasicXP);
 	}
 	pkmnfile.close();
+
+	// Sounds
+	hop_jump.Load("Sound/Hop_jump.wav");
+	step_out.Load("Sound/Step_out.wav");
 }
 
 void Database::Destroy()

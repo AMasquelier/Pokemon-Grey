@@ -82,7 +82,7 @@ void Main::MainLoop()
 	int wx = 0, wy = 0;
 	float opacity = 1;
 
-	//Main::GUI = 3;
+	Main::GUI = 0;
 
 	DialogueGUI::LoadScript("TEST");
 
@@ -104,11 +104,22 @@ void Main::MainLoop()
 				if (input.GetInput(input.Z)) map.MovePlayer(input.GetInput(input.L_SHIFT), 1);
 				if (input.GetInput(input.Q)) map.MovePlayer(input.GetInput(input.L_SHIFT), 2);
 				if (input.GetInput(input.D)) map.MovePlayer(input.GetInput(input.L_SHIFT), 3);
+				if (input.pushedInput(input.Space)) map.Interact();
 			}
 			else if (GUI == 1) PkmnTeamGUI::Update();
 			else if (GUI == 2) BagGUI::Update();
-			else if (GUI == 3) FightGUI::Battle(Player_info::GetPlayer_ptr(), 5, 100, 0);
-
+			else if (GUI == 3)
+			{
+				Mix_HaltMusic();
+				FightGUI::Battle(Player_info::GetPlayer_ptr(), 5, 100, 0);
+				map.PlayMusic();
+			}
+			else if (GUI == 4)
+			{
+				DialogueGUI::Update();
+			}
+			MainInfoGUI::Update();
+			Sound_manager::Update_sound();
 			map.Update();
 			player->Animate();
 
@@ -126,6 +137,10 @@ void Main::MainLoop()
 
 			if (GUI == 1) PkmnTeamGUI::Display();
 			if (GUI == 2) BagGUI::Display();
+			else if (GUI == 4)
+			{
+				DialogueGUI::Display();
+			}
 
 			if (!input.CloseGame) SDL_GL_SwapWindow(screen);
 			LastTime = ActTime;
@@ -239,6 +254,7 @@ int main(int argc, char *argv[])
 	PkmnTeamGUI::Init();
 	BagGUI::Init();
 	FightGUI::Init();
+	DialogueGUI::Init();
 
 	Main::MainLoop();
 	Main::Editor();

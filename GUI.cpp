@@ -1,3 +1,4 @@
+#include <ctime>
 #include "GUI.h"
 #include "main.h"
 #include "Database.h"
@@ -9,18 +10,32 @@ Bitmap MainInfoGUI::_badges;
 Bitmap MainInfoGUI::_dex;
 Bitmap MainInfoGUI::_playTime;
 Bitmap MainInfoGUI::_team_status;
+Bitmap MainInfoGUI::_time;
+Clock MainInfoGUI::_refresh_time;
 void MainInfoGUI::Init()
 {
+	Player *p = Player_info::GetPlayer_ptr();
 	_menu.Load("Menu/Menu.png");
 	_team_status.Load("Menu/pkbl.png");
 
-	if (!Database::font) cout << TTF_GetError() << endl;
+	if (!Database::font || !Database::font3) cout << TTF_GetError() << endl;
 	else
 	{
 		_playerName.LoadText(Database::font4, "Red", { 220, 220, 220 });
-		_money.LoadText(Database::font, "Money : 5555 $", { 220, 220, 220 });
+		_money.LoadText(Database::font, ("Money : " + to_string(p->GetMoney()) + " $").c_str(), { 220, 220, 220 });
+		_badges.LoadText(Database::font, "Badges : 0", { 220, 220, 220 });
+		_dex.LoadText(Database::font, "Pokedex : 0", { 220, 220, 220 });
+		_playTime.LoadText(Database::font, "Game time : 1 h 02 min", { 220, 220, 220 });
+		time_t time_;
+		struct tm t;
+		time(&time_);
+		t = *localtime(&time_);
+		if (t.tm_min >= 10)
+			_time.LoadText(Database::font3, (to_string(t.tm_hour) + " : " + to_string(t.tm_min)).c_str(), { 20, 20, 20 });
+		else
+			_time.LoadText(Database::font3, (to_string(t.tm_hour) + " : 0" + to_string(t.tm_min)).c_str(), { 20, 20, 20 });
 	}
-	
+	_refresh_time.start();
 }
 
 void MainInfoGUI::Destroy()
@@ -32,11 +47,18 @@ void MainInfoGUI::Display()
 	Player *player = Player_info::GetPlayer_ptr();
 
 	Draw::BITMAP(0, 0, &_menu);
+	Draw::BITMAP(500, 14, &_time);
 
 	// Player Name
 	Draw::BITMAP(650, 4, &_playerName);
 	// Money
 	Draw::BITMAP(650, 24, &_money);
+	// Badges
+	Draw::BITMAP(750, 24, &_badges);
+	// Pokedex
+	Draw::BITMAP(830, 24, &_dex);
+	// Play time
+	Draw::BITMAP(910, 24, &_playTime);
 
 	// Team status
 	for (int i = 0; i < 6; i++)
@@ -52,20 +74,37 @@ void MainInfoGUI::Display()
 
 void MainInfoGUI::Update()
 {
+	
+	if (_refresh_time.duration() > 1000000)
+	{
+		time_t time_;
+		struct tm t;
+		time(&time_);
+		t = *localtime(&time_);
+		if (t.tm_min >= 10)
+			_time.LoadText(Database::font3, (to_string(t.tm_hour) + " : " + to_string(t.tm_min)).c_str(), { 20, 20, 20 });
+		else
+			_time.LoadText(Database::font3, (to_string(t.tm_hour) + " : 0" + to_string(t.tm_min)).c_str(), { 20, 20, 20 });
+		_refresh_time.start();
+	}
 }
 
 // Dialogue GUI < Work in progress >
-Bitmap DialogueGUI::_Box;
+Dialogue DialogueGUI::_dial;
+Bitmap DialogueGUI::_Box, DialogueGUI::_lines[3];
+Bitmap DialogueGUI::_ChoiceBox, DialogueGUI::_cursor, DialogueGUI::_choices_bmp[3];
 
 string DialogueGUI::_ID;
-vector<string> DialogueGUI::_text;
-vector<int> DialogueGUI::_data;
-vector<DChoice> DialogueGUI::_choices;
+bool DialogueGUI::_update_text = true, DialogueGUI::_choosing = false;
+Choice *DialogueGUI::_choice;
+int DialogueGUI::_pos_cursor = 0;
+bool DialogueGUI::_stop = false;
 
 void DialogueGUI::Init()
 {
 	if (!_Box.isLoaded()) _Box.Load("Menu/Dialogue.png");
-
+	if (!_cursor.isLoaded()) _cursor.Load("Menu/Cursor16.png");
+	if (!_ChoiceBox.isLoaded()) _ChoiceBox.Load("Menu/Choice_dial.png");
 }
 
 void DialogueGUI::Destroy()
@@ -74,73 +113,95 @@ void DialogueGUI::Destroy()
 
 void DialogueGUI::Display()
 {
+	Draw::BITMAP(10, 600, &_Box);
+	for (int i = 0; i < 3; i++)
+	{
+		if (_lines[i].isLoaded())
+			Draw::BITMAP(20, 612 + i * 22, &_lines[i]);
+	}
+	if (_choice != nullptr)
+	{
+		Draw::BITMAP(510, 600, &_ChoiceBox);
+		for (int i = 0; i < 3; i++)
+		{
+			if (_choices_bmp[i].isLoaded())
+				Draw::BITMAP(540, 612 + i * 22, &_choices_bmp[i]);
+		}
+		Draw::BITMAP(520, 612 + _pos_cursor * 22, &_cursor);
+	}
 }
 
 void DialogueGUI::Update()
 {
 	// Controls
+	if (Main::input.pushedInput(Main::input.Space))
+	{
+		_choosing = false;
+		_update_text = true;
+		if (_choice != nullptr)
+		{
+			_choice->data = _pos_cursor;
+			_choice = nullptr;
+		}
+		else _choice = _dial.Choice_to_make();
+
+		if (_stop)
+		{
+			Main::GUI = 0;
+			_update_text = false;
+		}
+	}
+	if (_choosing)
+	{
+		if (Main::input.pushedInput(Main::input.S) && _pos_cursor < fmin(_choice->choices.size()-1, 2))
+			_pos_cursor++;
+		if (Main::input.pushedInput(Main::input.Z) && _pos_cursor > 0)
+			_pos_cursor--;
+	}
 
 	// Manage script
+	string line = "";
+
+	if (_choice != nullptr && !_choosing)
+	{
+		_choosing = true;
+		_update_text = false;
+		for (int i = 0; i < 3; i++)
+		{
+			_choices_bmp[i].Destroy();
+
+			if (i < _choice->choices.size())
+				_choices_bmp[i].LoadText(Database::font20, _choice->choices[i].c_str(), Database::Black);
+		}
+	}
+	
+	if (_update_text)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			_lines[i].Destroy();
+			
+			line = _dial.GetNext();
+			if (line != "#END_OF_DIALOGUE#")
+				_lines[i].LoadText(Database::font20, line.c_str(), Database::Black);
+			else if (i > 0)
+				_stop = true;
+			else
+				Main::GUI = 0;
+		}
+		_update_text = false;
+	}
 }
 
 void DialogueGUI::LoadScript(string ID)
 {
-	ifstream file("Dialogue.txt", std::ios::in);
-	cout << "Reading Dialogues file..." << endl;
-	int pos = 0;
-	string act_line;
-	if (file)
-	{
-		int pos_ID = find_ID(ID, &file);
-		if (pos_ID != -1)
-		{
-			file.seekg(pos_ID);
+	_pos_cursor = 0;
+	_stop = false;
+	_dial.Destroy();
+	_update_text = true;
+	_choice = nullptr;
 
-			file >> act_line;
-			while (act_line != "<END>")
-			{
-				if (act_line == ">")
-				{
-					string buf;
-					file >> buf;
-					_text.push_back(buf);
-					pos++;
-				}
-				else if (act_line == "<CHOICE>")
-				{
-					DChoice buf1;
-					string buf2;
-
-					buf1.pos = pos - 1;
-					file >> buf2;
-					while (buf2 != "</>")
-					{
-						buf1.choices.push_back(buf2);
-						file >> buf2;
-					}
-					_choices.push_back(buf1);
-				}
-
-				file >> act_line;
-			}
-			file.close();
-		}
-		else cout << "Missing Dialogues file" << endl;
-
-		cout << _text.size() << " Dialogue lines" << endl;
-		for (int i = 0; i < _text.size(); i++)
-			cout << i << " > " << _text[i] << endl;
-
-		cout << _choices.size() << " choices to make" << endl;
-		for (int i = 0; i < _choices.size(); i++)
-		{
-			cout << "Choice n." << i + 1 << "(size : " << _choices[i].choices.size() << ", pos : " << _choices[i].pos << ")" << endl;
-			for (int j = 0; j < _choices[i].choices.size(); j++)
-				cout << "    " << _choices[i].choices[j] << endl;
-		}
-
-	}
-	else cout << "No " << ID << " found" << endl;
+	_dial.LoadScript(ID);
 }
 
 int DialogueGUI::find_ID(string ID, ifstream *file)
@@ -512,6 +573,7 @@ void BagGUI::Update()
 
 
 // Fight GUI
+Mix_Chunk *FightGUI::_ball_sound[4], *FightGUI::_launch_ball, *FightGUI::_attack_sound;
 Bitmap FightGUI::_background, FightGUI::_HpBarTop, FightGUI::_HpBarDown, FightGUI::_baseFront, FightGUI::_baseBack;
 Bitmap FightGUI::_Battlebox, FightGUI::_actionBox, FightGUI::_cursor, FightGUI::_moveBox, FightGUI::_balls;
 Bitmap FightGUI::_Attack, FightGUI::_Bag, FightGUI::_PkmnTeam, FightGUI::_Run;
@@ -534,6 +596,14 @@ void FightGUI::Init()
 	_cursor.Load("Menu/Battle/Cursor.png");
 	_moveBox.Load("Menu/Battle/MoveBar.png");
 	_balls.Load("Menu/Balls.png");
+
+	_ball_sound[0] = Mix_LoadWAV("Sound/ball1.wav");
+	_ball_sound[1] = Mix_LoadWAV("Sound/ball2.wav");
+	_ball_sound[2] = Mix_LoadWAV("Sound/ball3.wav");
+	_ball_sound[3] = Mix_LoadWAV("Sound/ball4.wav");
+
+	_launch_ball = Mix_LoadWAV("Sound/throwball.wav");
+	_attack_sound = Mix_LoadWAV("Sound/Attack.wav");
 }
 
 void FightGUI::Destroy()
@@ -710,6 +780,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 	int randoms[4], nb_shake = 0;
 
 	// States
+	 
 	bool battle = false;
 	bool intro = true;
 	bool launching_pkmn = false;
@@ -725,6 +796,10 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 	// Main loop
 	double ActTime = 0, LastTime = 0, frame_rate = 90;
 	bool Keep = true;
+
+	Music music("Music/Battle-wild.mp3");
+	Mix_VolumeMusic(MIX_MAX_VOLUME / 2);
+	Sound_manager::Play_music(music);
 
 	//Keep = false; caught = true;
 
@@ -930,6 +1005,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 								info_bmp[0].LoadText(Database::font1, "Mais cela échoue !", Database::White);
 								waiting_pushA = true;
 							}
+							Mix_PlayChannel(1, _attack_sound, 0);
 							waiting_pushA = true;
 							disp_info = true;
 							resolve = false;
@@ -950,7 +1026,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 							capturing = true;
 							int pcatch_t = Database::GetPkmn(pkmns[1]->GetID())->GetCatch_t();
 							a_catch = (1 - 0.6667 * (pkmns[1]->GetActHP() / pkmns[1]->GetHP())) * pcatch_t * ((I_Ball*)Database::GetItem(ThrowBall))->GetProbability();
-							
+							Mix_PlayChannel(0, _launch_ball, 0);
 							if (a_catch >= 255)
 							{
 								nb_shake = 3;
@@ -1040,6 +1116,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 								{
 									move = true;
 									ballframe = 16;
+									
 								}
 								else
 								{
@@ -1056,6 +1133,7 @@ void FightGUI::Battle(Player *p, int PkmnID, int lvl, int background)
 									{
 										move = false;
 										nb_shake--;
+										Mix_PlayChannel(0, _ball_sound[nb_shake], 0);
 									}
 								}
 							}

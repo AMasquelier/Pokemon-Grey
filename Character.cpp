@@ -25,6 +25,16 @@ int Character::GetDir()
 	return _dir;
 }
 
+int Character::GetX()
+{
+	return _x;
+}
+
+int Character::GetY()
+{
+	return _y;
+}
+
 
 // Player
 void Player::Load(int x, int y)
@@ -74,9 +84,15 @@ void Player::Load(int x, int y)
 	file.close();
 }
 
-void Player::Display(double scroll_x, double scroll_y)
+void Player::Display_top()
 {
-	Draw::BITMAP_region(_pos.x, _pos.y , 64, 64, _sprite.x, _sprite.y, 32, 32, &_spriteset);
+	Draw::BITMAP_region(_pos.x, _pos.y , 64, 32, _sprite.x, _sprite.y, 32, 16, &_spriteset);
+	_nx = _x; _ny = _y;
+}
+
+void Player::Display_bot()
+{
+	Draw::BITMAP_region(_pos.x, _pos.y + 32, 64, 32, _sprite.x, _sprite.y + 16, 32, 16, &_spriteset);
 	_nx = _x; _ny = _y;
 }
 
@@ -242,6 +258,11 @@ int Player::GetNbBadges()
 	return _nb_badges;
 }
 
+int Player::GetMoney()
+{
+	return _money;
+}
+
 void Player::Stay()
 {
 	_nx = -1; _ny = -1;
@@ -307,4 +328,30 @@ Pokemon * Trainer::GetPkmn(int n)
 {
 	if (n < _nb_pkmn) return &_pkmns[n];
 	else return nullptr;
+}
+
+// NPC
+Bitmap NPC::_spriteset;
+NPC::NPC()
+{
+}
+
+void NPC::Load(string name, int ID, int x, int y)
+{
+	_ID = ID;
+	_name = name;
+	if (!_spriteset.isLoaded()) _spriteset.Load("Characters/NPC.png");
+	_sprite.x = (ID % 4) * 128; _sprite.y = (ID / 4) * 128;
+	_pos.x = x * 32 - 16; _pos.y = y * 32;
+	_x = x; _y = y;
+}
+
+void NPC::Display_top()
+{
+	Draw::BITMAP_region(_pos.x, _pos.y, 64, 32, _sprite.x, _sprite.y, 32, 16, &_spriteset);
+}
+
+void NPC::Display_bot()
+{
+	Draw::BITMAP_region(_pos.x, _pos.y + 32, 64, 32, _sprite.x, _sprite.y + 16, 32, 16, &_spriteset);
 }
