@@ -1,0 +1,59 @@
+#TEST
+> TEST
+> Tu_veux_quoi_comme_starter_ma_gueule_?_
+> _
+<CHOICE> Bulbizarre Salamèche Carapuce </>
+<IF {0] == 0>
+{
+	> Ok_vas-y_prends_ton_légume_et_casse-toi _!_
+	> _
+	> _
+}
+<IF {0] == 1>
+{
+	> T'as_bien_choisi_!_
+	> _
+	> _
+}
+<IF {0] == 2>
+{
+	> Choisis_mieux_!_Boloss_
+	> _
+	> _
+}
+> A_plus_dans_le_bus_!_
+<END>
+#Chen
+> Wesh_!_
+> Tu_veux_quoi_comme_starter_ma_gueule_?_
+> _
+<CHOICE> Bulbizarre Salamèche Carapuce </>
+<IF {0] == 0>
+{
+	> Ok_vas-y_prends_ton_légume_et_casse-toi _!_
+	> _
+	> _
+}
+<IF {0] == 1>
+{
+	> T'as_bien_choisi_!_
+	> _
+	> _
+}
+<IF {0] == 2>
+{
+	> Choisis_mieux_!_Boloss_
+	> _
+	> _
+}
+> A_plus_dans_le_bus_!
+<END>
+#Gandalf
+> You_...
+> Shall...
+> Not...
+> PAAAAASSSS_!
+<END>
+#Panneau
+> Vous_lisez_ce_panneau
+<END>
